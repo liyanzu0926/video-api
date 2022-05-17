@@ -1,0 +1,8 @@
+server:
+  port: 9009
+spring:
+  application:
+    name: VIDEO-API-VIDEOS
+  cloud:
+    nacos:
+      server-addr: 192.168.150.3:8848

@@ -1,0 +1,27 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: VIDEO-API-GATEWAY
+  cloud:
+    nacos:
+      server-addr: 192.168.150.3:8848
+    gateway:
+      routes:
+        - id: sms_router
+          uri: lb://VIDEO-API-SMS
+          predicates:
+            - Path=/api/captchas
+
+        - id: user_router
+          uri: lb://VIDEO-API-USERS
+          predicates:
+            - Path=/api/tokens, /api/token, /api/user
+
+      # 跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"

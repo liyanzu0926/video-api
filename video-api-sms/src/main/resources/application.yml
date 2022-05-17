@@ -1,0 +1,11 @@
+server:
+  port: 9007
+spring:
+  application:
+    name: VIDEO-API-SMS
+  cloud:
+    nacos:
+      server-addr: 192.168.150.3:8848
+  redis:
+    host: 192.168.150.3
+    port: 6379
