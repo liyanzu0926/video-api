@@ -16,7 +16,17 @@ spring:
         - id: user_router
           uri: lb://VIDEO-API-USERS
           predicates:
-            - Path=/api/tokens, /api/token, /api/user
+            - Path=/api/tokens, /api/token, /api/user, /api/user/videos
+
+        - id: category_router
+          uri: lb://VIDEO-API-CATEGORIES
+          predicates:
+            - Path=/api/categories, /api/categories/**, /api/categories/name
+
+        - id: videos_router
+          uri: lb://VIDEO-API-VIDEOS
+          predicates:
+            - Path=/api/videos/insert
 
       # 跨域配置
       globalcors:

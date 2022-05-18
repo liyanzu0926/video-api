@@ -9,7 +9,8 @@ public enum UserExceptionEnum {
     VERIFICATION_CODE_EXPIRED("400", "验证码已过期"),
     VERIFICATION_CODE_ERROR("400", "验证码错误"),
     TOKEN_IS_EMPTY("400", "令牌为空"),
-    TOKEN_IS_ILLEGAL("400", "令牌不合法");
+    TOKEN_IS_ILLEGAL("400", "令牌不合法"),
+    FILE_EXCEEDS_MAXIMUM("400", "文件不能超过给定的最大值");
 
 
     private String status;

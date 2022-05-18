@@ -39,6 +39,18 @@ services:
     volumes:
       - redis_data:/data
 
+  rabbitmq:
+    image: rabbitmq:3.7.28-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - video_network
+    environment:
+      - "RABBITMQ_DEFAULT_USER=admin"
+      - "RABBITMQ_DEFAULT_PASS=123456"
+
+
 #  nginx:
 #    image: nginx:1.21.6
 #    ports:

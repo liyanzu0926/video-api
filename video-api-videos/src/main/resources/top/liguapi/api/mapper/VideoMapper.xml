@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="top.liguapi.api.mapper.UserMapper">
-  <resultMap id="BaseResultMap" type="top.liguapi.api.entity.pojo.User">
+<mapper namespace="top.liguapi.api.mapper.VideoMapper">
+  <resultMap id="BaseResultMap" type="top.liguapi.api.entity.pojo.Video">
     <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
     <result column="intro" jdbcType="VARCHAR" property="intro" />
-    <result column="phone" jdbcType="VARCHAR" property="phone" />
-    <result column="phone_linked" jdbcType="BIT" property="phoneLinked" />
-    <result column="openid" jdbcType="VARCHAR" property="openid" />
-    <result column="wechat_linked" jdbcType="BIT" property="wechatLinked" />
-    <result column="following_count" jdbcType="INTEGER" property="followingCount" />
-    <result column="followers_count" jdbcType="INTEGER" property="followersCount" />
+    <result column="uid" jdbcType="INTEGER" property="uid" />
+    <result column="cover" jdbcType="VARCHAR" property="cover" />
+    <result column="link" jdbcType="VARCHAR" property="link" />
+    <result column="category_id" jdbcType="INTEGER" property="categoryId" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
     <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
     <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
@@ -75,16 +72,15 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, name, avatar, intro, phone, phone_linked, openid, wechat_linked, following_count, 
-    followers_count, created_at, updated_at, deleted_at
+    id, title, intro, uid, cover, link, category_id, created_at, updated_at, deleted_at
   </sql>
-  <select id="selectByExample" parameterType="top.liguapi.api.entity.pojo.UserExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="top.liguapi.api.entity.pojo.VideoExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from user
+    from video
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -95,63 +91,52 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from user
+    from video
     where id = #{id,jdbcType=INTEGER}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-    delete from user
+    delete from video
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <delete id="deleteByExample" parameterType="top.liguapi.api.entity.pojo.UserExample">
-    delete from user
+  <delete id="deleteByExample" parameterType="top.liguapi.api.entity.pojo.VideoExample">
+    delete from video
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="top.liguapi.api.entity.pojo.User">
-    insert into user (id, name, avatar, 
-      intro, phone, phone_linked, 
-      openid, wechat_linked, following_count, 
-      followers_count, created_at, updated_at, 
-      deleted_at)
-    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, 
-      #{intro,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{phoneLinked,jdbcType=BIT}, 
-      #{openid,jdbcType=VARCHAR}, #{wechatLinked,jdbcType=BIT}, #{followingCount,jdbcType=INTEGER}, 
-      #{followersCount,jdbcType=INTEGER}, #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}, 
-      #{deletedAt,jdbcType=TIMESTAMP})
+  <insert id="insert" parameterType="top.liguapi.api.entity.pojo.Video" keyProperty="id" useGeneratedKeys="true">
+    insert into video (id, title, intro, 
+      uid, cover, link, category_id, 
+      created_at, updated_at, deleted_at
+      )
+    values (#{id,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{intro,jdbcType=VARCHAR}, 
+      #{uid,jdbcType=INTEGER}, #{cover,jdbcType=VARCHAR}, #{link,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
+      #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}, #{deletedAt,jdbcType=TIMESTAMP}
+      )
   </insert>
-  <insert id="insertSelective" parameterType="top.liguapi.api.entity.pojo.User" useGeneratedKeys="true" keyProperty="id">
-    insert into user
+  <insert id="insertSelective" parameterType="top.liguapi.api.entity.pojo.Video">
+    insert into video
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
         id,
       </if>
-      <if test="name != null">
-        name,
-      </if>
-      <if test="avatar != null">
-        avatar,
+      <if test="title != null">
+        title,
       </if>
       <if test="intro != null">
         intro,
       </if>
-      <if test="phone != null">
-        phone,
+      <if test="uid != null">
+        uid,
       </if>
-      <if test="phoneLinked != null">
-        phone_linked,
+      <if test="cover != null">
+        cover,
       </if>
-      <if test="openid != null">
-        openid,
+      <if test="link != null">
+        link,
       </if>
-      <if test="wechatLinked != null">
-        wechat_linked,
-      </if>
-      <if test="followingCount != null">
-        following_count,
-      </if>
-      <if test="followersCount != null">
-        followers_count,
+      <if test="categoryId != null">
+        category_id,
       </if>
       <if test="createdAt != null">
         created_at,
@@ -167,32 +152,23 @@
       <if test="id != null">
         #{id,jdbcType=INTEGER},
       </if>
-      <if test="name != null">
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="avatar != null">
-        #{avatar,jdbcType=VARCHAR},
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
       </if>
       <if test="intro != null">
         #{intro,jdbcType=VARCHAR},
       </if>
-      <if test="phone != null">
-        #{phone,jdbcType=VARCHAR},
+      <if test="uid != null">
+        #{uid,jdbcType=INTEGER},
       </if>
-      <if test="phoneLinked != null">
-        #{phoneLinked,jdbcType=BIT},
+      <if test="cover != null">
+        #{cover,jdbcType=VARCHAR},
       </if>
-      <if test="openid != null">
-        #{openid,jdbcType=VARCHAR},
+      <if test="link != null">
+        #{link,jdbcType=VARCHAR},
       </if>
-      <if test="wechatLinked != null">
-        #{wechatLinked,jdbcType=BIT},
-      </if>
-      <if test="followingCount != null">
-        #{followingCount,jdbcType=INTEGER},
-      </if>
-      <if test="followersCount != null">
-        #{followersCount,jdbcType=INTEGER},
+      <if test="categoryId != null">
+        #{categoryId,jdbcType=INTEGER},
       </if>
       <if test="createdAt != null">
         #{createdAt,jdbcType=TIMESTAMP},
@@ -205,44 +181,35 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="top.liguapi.api.entity.pojo.UserExample" resultType="java.lang.Long">
-    select count(*) from user
+  <select id="countByExample" parameterType="top.liguapi.api.entity.pojo.VideoExample" resultType="java.lang.Long">
+    select count(*) from video
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update user
+    update video
     <set>
       <if test="record.id != null">
         id = #{record.id,jdbcType=INTEGER},
       </if>
-      <if test="record.name != null">
-        name = #{record.name,jdbcType=VARCHAR},
-      </if>
-      <if test="record.avatar != null">
-        avatar = #{record.avatar,jdbcType=VARCHAR},
+      <if test="record.title != null">
+        title = #{record.title,jdbcType=VARCHAR},
       </if>
       <if test="record.intro != null">
         intro = #{record.intro,jdbcType=VARCHAR},
       </if>
-      <if test="record.phone != null">
-        phone = #{record.phone,jdbcType=VARCHAR},
+      <if test="record.uid != null">
+        uid = #{record.uid,jdbcType=INTEGER},
       </if>
-      <if test="record.phoneLinked != null">
-        phone_linked = #{record.phoneLinked,jdbcType=BIT},
+      <if test="record.cover != null">
+        cover = #{record.cover,jdbcType=VARCHAR},
       </if>
-      <if test="record.openid != null">
-        openid = #{record.openid,jdbcType=VARCHAR},
+      <if test="record.link != null">
+        link = #{record.link,jdbcType=VARCHAR},
       </if>
-      <if test="record.wechatLinked != null">
-        wechat_linked = #{record.wechatLinked,jdbcType=BIT},
-      </if>
-      <if test="record.followingCount != null">
-        following_count = #{record.followingCount,jdbcType=INTEGER},
-      </if>
-      <if test="record.followersCount != null">
-        followers_count = #{record.followersCount,jdbcType=INTEGER},
+      <if test="record.categoryId != null">
+        category_id = #{record.categoryId,jdbcType=INTEGER},
       </if>
       <if test="record.createdAt != null">
         created_at = #{record.createdAt,jdbcType=TIMESTAMP},
@@ -259,17 +226,14 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update user
+    update video
     set id = #{record.id,jdbcType=INTEGER},
-      name = #{record.name,jdbcType=VARCHAR},
-      avatar = #{record.avatar,jdbcType=VARCHAR},
+      title = #{record.title,jdbcType=VARCHAR},
       intro = #{record.intro,jdbcType=VARCHAR},
-      phone = #{record.phone,jdbcType=VARCHAR},
-      phone_linked = #{record.phoneLinked,jdbcType=BIT},
-      openid = #{record.openid,jdbcType=VARCHAR},
-      wechat_linked = #{record.wechatLinked,jdbcType=BIT},
-      following_count = #{record.followingCount,jdbcType=INTEGER},
-      followers_count = #{record.followersCount,jdbcType=INTEGER},
+      uid = #{record.uid,jdbcType=INTEGER},
+      cover = #{record.cover,jdbcType=VARCHAR},
+      link = #{record.link,jdbcType=VARCHAR},
+      category_id = #{record.categoryId,jdbcType=INTEGER},
       created_at = #{record.createdAt,jdbcType=TIMESTAMP},
       updated_at = #{record.updatedAt,jdbcType=TIMESTAMP},
       deleted_at = #{record.deletedAt,jdbcType=TIMESTAMP}
@@ -277,35 +241,26 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="top.liguapi.api.entity.pojo.User">
-    update user
+  <update id="updateByPrimaryKeySelective" parameterType="top.liguapi.api.entity.pojo.Video">
+    update video
     <set>
-      <if test="name != null">
-        name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="avatar != null">
-        avatar = #{avatar,jdbcType=VARCHAR},
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
       </if>
       <if test="intro != null">
         intro = #{intro,jdbcType=VARCHAR},
       </if>
-      <if test="phone != null">
-        phone = #{phone,jdbcType=VARCHAR},
+      <if test="uid != null">
+        uid = #{uid,jdbcType=INTEGER},
       </if>
-      <if test="phoneLinked != null">
-        phone_linked = #{phoneLinked,jdbcType=BIT},
+      <if test="cover != null">
+        cover = #{cover,jdbcType=VARCHAR},
       </if>
-      <if test="openid != null">
-        openid = #{openid,jdbcType=VARCHAR},
+      <if test="link != null">
+        link = #{link,jdbcType=VARCHAR},
       </if>
-      <if test="wechatLinked != null">
-        wechat_linked = #{wechatLinked,jdbcType=BIT},
-      </if>
-      <if test="followingCount != null">
-        following_count = #{followingCount,jdbcType=INTEGER},
-      </if>
-      <if test="followersCount != null">
-        followers_count = #{followersCount,jdbcType=INTEGER},
+      <if test="categoryId != null">
+        category_id = #{categoryId,jdbcType=INTEGER},
       </if>
       <if test="createdAt != null">
         created_at = #{createdAt,jdbcType=TIMESTAMP},
@@ -319,17 +274,14 @@
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="top.liguapi.api.entity.pojo.User">
-    update user
-    set name = #{name,jdbcType=VARCHAR},
-      avatar = #{avatar,jdbcType=VARCHAR},
+  <update id="updateByPrimaryKey" parameterType="top.liguapi.api.entity.pojo.Video">
+    update video
+    set title = #{title,jdbcType=VARCHAR},
       intro = #{intro,jdbcType=VARCHAR},
-      phone = #{phone,jdbcType=VARCHAR},
-      phone_linked = #{phoneLinked,jdbcType=BIT},
-      openid = #{openid,jdbcType=VARCHAR},
-      wechat_linked = #{wechatLinked,jdbcType=BIT},
-      following_count = #{followingCount,jdbcType=INTEGER},
-      followers_count = #{followersCount,jdbcType=INTEGER},
+      uid = #{uid,jdbcType=INTEGER},
+      cover = #{cover,jdbcType=VARCHAR},
+      link = #{link,jdbcType=VARCHAR},
+      category_id = #{categoryId,jdbcType=INTEGER},
       created_at = #{createdAt,jdbcType=TIMESTAMP},
       updated_at = #{updatedAt,jdbcType=TIMESTAMP},
       deleted_at = #{deletedAt,jdbcType=TIMESTAMP}

@@ -6,3 +6,24 @@ spring:
   cloud:
     nacos:
       server-addr: 192.168.150.3:8848
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.150.3:3306/video?characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 123456
+
+  redis:
+    host: 192.168.150.3
+    port: 6379
+
+  rabbitmq:
+    host: 192.168.150.3
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+
+logging:
+  level:
+    top.liguapi.api.mapper: debug

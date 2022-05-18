@@ -1,23 +1,7 @@
-server:
-  port: 9008
 spring:
-  application:
-    name: VIDEO-API-USERS
-  cloud:
-    nacos:
-      server-addr: 192.168.150.3:8848
-
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://192.168.150.3:3306/video?characterEncoding=UTF-8&useSSL=false
-    username: root
-    password: 123456
-
-  redis:
-    host: 192.168.150.3
-    port: 6379
-
-logging:
-  level:
-    top.liguapi.api.mapper: debug
+  profiles:
+    active:
+      - web
+      - db
+      - file
+      - aliyun

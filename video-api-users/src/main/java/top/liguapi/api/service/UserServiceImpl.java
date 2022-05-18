@@ -41,8 +41,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUserInfo(User user) {
-        UserExample example = new UserExample();
-        example.createCriteria().andPhoneEqualTo(user.getPhone());
-        userMapper.updateByExampleSelective(user, example);
+        userMapper.updateByPrimaryKeySelective(user);
     }
 }
