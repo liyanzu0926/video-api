@@ -1,6 +1,9 @@
 package top.liguapi.api.service;
 
+import top.liguapi.api.entity.dto.VideoDTO;
 import top.liguapi.api.entity.pojo.Video;
+
+import java.util.List;
 
 /**
  * @Description
@@ -9,4 +12,6 @@ import top.liguapi.api.entity.pojo.Video;
  */
 public interface VideoService {
     Video insert(Video video);
+
+    List<VideoDTO> query(Integer page, Integer size);
 }

@@ -40,19 +40,23 @@ public class TokenInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        boolean annotationPresent = ((HandlerMethod) handler).getMethod().isAnnotationPresent(Token.class);
-        if (annotationPresent) {
-            String token = request.getParameter("token");
-            if (token == null) {
-                throw new UserException(UserExceptionEnum.TOKEN_IS_EMPTY);
+        if (handler instanceof HandlerMethod) {
+            boolean annotationPresent = ((HandlerMethod) handler).getMethod().isAnnotationPresent(Token.class);
+            if (annotationPresent) {
+                String token = request.getParameter("token");
+                if (token == null) {
+                    throw new UserException(UserExceptionEnum.TOKEN_IS_EMPTY);
+                }
+                User user = (User) redisTemplate.opsForValue().get(RedisPrefix.TOKEN_KEY + token);
+                if (user == null) {
+                    throw new UserException(UserExceptionEnum.TOKEN_IS_ILLEGAL);
+                }
+                request.setAttribute("token", token);
+                request.setAttribute("user", user);
             }
-            User user = (User) redisTemplate.opsForValue().get(RedisPrefix.TOKEN_KEY + token);
-            if (user == null) {
-                throw new UserException(UserExceptionEnum.TOKEN_IS_ILLEGAL);
-            }
-            request.setAttribute("token", token);
-            request.setAttribute("user", user);
+            return true;
+        }else {
+            return false;
         }
-        return true;
     }
 }

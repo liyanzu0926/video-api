@@ -9,18 +9,25 @@ volumes:
 
 services:
   nacos:
-    image: nacos/nacos-server:2.0.2
+    image: nacos/nacos-server:v2.1.0
+    container_name: nacos
     ports:
       - "8848:8848"
     environment:
       - "JVM_XMS=256m"
       - "JVM_XMX=256m"
       - "MODE=standalone"
+      - "SPRING_DATASOURCE_PLATFORM=mysql"
+      - "MYSQL_SERVICE_HOST=192.168.150.3"
+      - "MYSQL_SERVICE_USER=root"
+      - "MYSQL_SERVICE_PASSWORD=123456"
+      - "MYSQL_SERVICE_DB_NAME=nacos_config"
     networks:
       - video_network
 
   mysql:
     image: mysql:5.7
+    container_name: mysql
     ports:
       - "3306:3306"
     networks:
@@ -34,6 +41,7 @@ services:
 
   redis:
     image: redis:5.0.10
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
@@ -41,6 +49,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.7.28-management
+    container_name: rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -50,9 +59,52 @@ services:
       - "RABBITMQ_DEFAULT_USER=admin"
       - "RABBITMQ_DEFAULT_PASS=123456"
 
+  seata-server:
+    image: seataio/seata-server:1.5.0
+    container_name: seata-server
+    ports:
+      - "8091:8091"
+    networks:
+      - video_network
+
+    volumes:
+      - /home/lww/seata/seata-server:/seata-server
+    environment:
+      - SEATA_PORT=8091
+      - SEATA_IP=192.168.150.3
+    depends_on:
+      - nacos
+
+  elasticsearch:
+    image: elasticsearch:7.14.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - video_network
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - /home/lww/elasticsearch/data:/usr/share/elasticsearch/data
+      - /home/lww/elasticsearch/config:/usr/share/elasticsearch/config
+      - /home/lww/elasticsearch/plugins:/usr/share/elasticsearch/plugins
+
+  kibana:
+    image: kibana:7.14.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    networks:
+      - video_network
+    volumes:
+      - /home/lww/kibana/config:/usr/share/kibana/config
+
 
 #  nginx:
 #    image: nginx:1.21.6
+#    container_name: nginx
 #    ports:
 #      - "80:80"
 #    volumes:

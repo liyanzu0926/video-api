@@ -43,4 +43,10 @@ public class UserServiceImpl implements UserService {
     public void updateUserInfo(User user) {
         userMapper.updateByPrimaryKeySelective(user);
     }
+
+    @Override
+    public String queryNameById(Integer id) {
+        User user = userMapper.selectByPrimaryKey(id);
+        return user.getName();
+    }
 }

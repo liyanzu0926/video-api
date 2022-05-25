@@ -1,5 +1,6 @@
 package top.liguapi.api.controller;
 
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +159,7 @@ public class UserController {
     // 上传视频
     @PostMapping("user/videos")
     @Token
+//    @GlobalTransactional(name = "abc", rollbackFor = Exception.class)
     public VideoDTO upload(MultipartFile file, Video video, Integer category_id, HttpServletRequest request) {
 
         // 1.获取文件类型
@@ -201,6 +203,11 @@ public class UserController {
         videoDTO.setLikes(0);
 
         return videoDTO;
+    }
+
+    @GetMapping("getName/{id}")
+    public String queryNameById(@PathVariable Integer id){
+        return userService.queryNameById(id);
     }
 
 

@@ -6,3 +6,19 @@ spring:
   cloud:
     nacos:
       server-addr: 192.168.150.3:8848
+
+  rabbitmq:
+    host: 192.168.150.3
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /
+
+elasticsearch:
+  host: 192.168.150.3
+  port: 9200
+
+
+logging:
+  level:
+    top.liguapi.api.mapper: debug

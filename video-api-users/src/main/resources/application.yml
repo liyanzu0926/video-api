@@ -5,3 +5,4 @@ spring:
       - db
       - file
       - aliyun
+      - seata

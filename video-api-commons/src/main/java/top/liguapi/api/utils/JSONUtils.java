@@ -21,4 +21,14 @@ public class JSONUtils {
         }
         return s;
     }
+
+    public static <T> T readValue(String message, Class<T> valueType){
+        T t = null;
+        try {
+            t = objectMapper.readValue(message, valueType);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return t;
+    }
 }

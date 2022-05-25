@@ -51,6 +51,7 @@
         <lombok.version>1.18.22</lombok.version>
         <dysmsapi20170525.version>2.0.9</dysmsapi20170525.version>
         <spring.cloud.starter.openfeign.version>2.2.1.RELEASE</spring.cloud.starter.openfeign.version>
+        <pagehelper.version>5.2.0</pagehelper.version>
     </properties>
 
     <dependencyManagement>
@@ -188,6 +189,12 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-openfeign</artifactId>
                 <version>${spring.cloud.starter.openfeign.version}</version>
+            </dependency>
+            <!--分页插件-->
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper</artifactId>
+                <version>${pagehelper.version}</version>
             </dependency>
 
         </dependencies>

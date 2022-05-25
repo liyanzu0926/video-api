@@ -21,9 +21,31 @@ spring:
     host: 192.168.150.3
     port: 5672
     username: admin
-    password: admin
+    password: 123456
     virtual-host: /
 
 logging:
   level:
     top.liguapi.api.mapper: debug
+
+
+seata:
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      serverAddr: 192.168.150.3:8848
+      group: SEATA_GROUP
+      namespace:
+      cluster: default
+      username: nacos
+      password: nacos
+  config:
+    type: nacos
+    nacos:
+      serverAddr: 192.168.150.3:8848
+      namespace:
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos
+      dataId: seataServer.properties

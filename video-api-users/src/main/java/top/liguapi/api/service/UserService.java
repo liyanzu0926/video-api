@@ -13,4 +13,6 @@ public interface UserService {
     void insert(User user);
 
     void updateUserInfo(User user);
+
+    String queryNameById(Integer id);
 }

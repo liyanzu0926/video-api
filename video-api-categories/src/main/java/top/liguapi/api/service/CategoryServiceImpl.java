@@ -39,6 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public String queryNameById(Integer id) {
+//        int i = 1 / 0;
         Category category = categoryMapper.selectByPrimaryKey(id);
         return category.getName();
     }
