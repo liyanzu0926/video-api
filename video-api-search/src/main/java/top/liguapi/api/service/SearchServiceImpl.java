@@ -46,7 +46,7 @@ public class SearchServiceImpl implements SearchService {
         searchSourceBuilder.from(start).size(size).query(QueryBuilders.termQuery("title", q));
 
         // 3.设置搜索索引 video  设置搜索类型video  设置搜索条件
-        searchRequest.indices("video").types("video").source(searchSourceBuilder);
+        searchRequest.indices("video").types("_doc").source(searchSourceBuilder);
 
         SearchResponse search = null;
         try {
@@ -64,9 +64,11 @@ public class SearchServiceImpl implements SearchService {
             SearchHit[] hits = search.getHits().getHits();
             // 6.遍历符合条件的数组
             for (SearchHit hit : hits) {
+                // 7.获取json格式
                 String sourceAsString = hit.getSourceAsString();
+                // 8.json转对象
                 VideoDTO videoDTO = JSONUtils.readValue(sourceAsString, VideoDTO.class);
-                videoDTO.setId(Integer.valueOf(hit.getId()));
+//                videoDTO.setId(Integer.valueOf(hit.getId()));
                 videoDTOS.add(videoDTO);
             }
         }

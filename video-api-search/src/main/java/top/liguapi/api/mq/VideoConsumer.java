@@ -18,7 +18,7 @@ import top.liguapi.api.utils.JSONUtils;
 import java.io.IOException;
 
 /**
- * @Description
+ * @Description rabbitmq消息消费者
  * @Author lww
  * @Date 2022/5/25 21:19
  */
@@ -33,6 +33,11 @@ public class VideoConsumer {
         this.restHighLevelClient = restHighLevelClient;
     }
 
+    /**
+     * @Description: 接收消息，并新增es文档
+     * @author: lww
+     * @date: 2022/5/26 22:20
+     */
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue,
             exchange = @Exchange(name = "video", type = "fanout")
@@ -43,7 +48,7 @@ public class VideoConsumer {
         VideoDTO videoDTO = JSONUtils.readValue(message, VideoDTO.class);
 
         // 2.创建ES中索引请求对象  参数1:操作索引  参数2:操作类型  参数3:文档id
-        IndexRequest indexRequest = new IndexRequest("video", "video", videoDTO.getId().toString());
+        IndexRequest indexRequest = new IndexRequest("video", "_doc", videoDTO.getId().toString());
 
         // 3.设置ES文档的内容
         indexRequest.source(message, XContentType.JSON);

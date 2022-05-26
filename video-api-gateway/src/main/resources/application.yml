@@ -26,7 +26,12 @@ spring:
         - id: videos_router
           uri: lb://VIDEO-API-VIDEOS
           predicates:
-            - Path=/api/videos/insert, /api/recommends, /api/recommends/**
+            - Path=/api/videos/insert, /api/recommends, /api/recommends/**, /api/video/query/**, /api/videos, /api/videos/**
+
+        - id: search_router
+          uri: lb://VIDEO-API-SEARCH
+          predicates:
+            - Path=/api/search/videos/**
 
       # 跨域配置
       globalcors:

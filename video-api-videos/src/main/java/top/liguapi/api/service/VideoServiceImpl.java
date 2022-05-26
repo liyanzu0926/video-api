@@ -4,13 +4,14 @@ import com.github.pagehelper.PageHelper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import top.liguapi.api.constant.RedisPrefix;
 import top.liguapi.api.entity.dto.VideoDTO;
 import top.liguapi.api.entity.pojo.Video;
+import top.liguapi.api.entity.pojo.VideoExample;
 import top.liguapi.api.mapper.VideoMapper;
 import top.liguapi.api.utils.JSONUtils;
 
@@ -64,9 +65,41 @@ public class VideoServiceImpl implements VideoService {
         return videoDTOS;
     }
 
+    @Override
+    public List<VideoDTO> queryVideoByUid(Integer uid) {
+        VideoExample example = new VideoExample();
+        example.createCriteria().andUidEqualTo(uid);
+        List<Video> videos = videoMapper.selectByExample(example);
+        List<VideoDTO> videoDTOS = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(videos)) {
+            for (Video video : videos) {
+                VideoDTO videoDTO = videoToDTO(video);
+                videoDTOS.add(videoDTO);
+            }
+        }
+        return videoDTOS;
+    }
+
+    @Override
+    public List<VideoDTO> getVideoListByCategoryId(Integer page, Integer size, Integer categoryId) {
+        PageHelper.startPage(page, size);
+        VideoExample example = new VideoExample();
+        example.createCriteria().andCategoryIdEqualTo(categoryId);
+        List<Video> videos = videoMapper.selectByExample(example);
+        List<VideoDTO> videoDTOS = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(videos)) {
+            for (Video video : videos) {
+                VideoDTO videoDTO = videoToDTO(video);
+                videoDTOS.add(videoDTO);
+            }
+        }
+        return videoDTOS;
+    }
+
     /**
-     * @param video
-     * @return 将Video转换成VideoDTO
+     * @Description: 将Video转换成VideoDTO
+     * @author: lww
+     * @date: 2022/5/26 22:24
      */
     public VideoDTO videoToDTO(Video video) {
         VideoDTO videoDTO = new VideoDTO();

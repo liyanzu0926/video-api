@@ -3,6 +3,8 @@ package top.liguapi.api.entity.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * @Description
  * @Author lww
@@ -23,5 +25,5 @@ public class VideoDTO {
     private String uploader;
 
     @JsonProperty("created_at")
-    private String createdAt;
+    private Date createdAt;
 }

@@ -14,4 +14,8 @@ public interface VideoService {
     Video insert(Video video);
 
     List<VideoDTO> query(Integer page, Integer size);
+
+    List<VideoDTO> queryVideoByUid(Integer uid);
+
+    List<VideoDTO> getVideoListByCategoryId(Integer page, Integer size, Integer categoryId);
 }

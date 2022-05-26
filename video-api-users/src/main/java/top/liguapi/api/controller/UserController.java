@@ -1,6 +1,5 @@
 package top.liguapi.api.controller;
 
-import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +20,10 @@ import top.liguapi.api.service.CategoryService;
 import top.liguapi.api.service.UserService;
 import top.liguapi.api.service.VideoService;
 import top.liguapi.api.utils.AvatarUtils;
-
-import javax.naming.SizeLimitExceededException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,7 +52,11 @@ public class UserController {
         this.categoryService = categoryService;
     }
 
-    // 登陆注册
+    /**
+     * @Description: 登录注册
+     * @author: lww
+     * @date: 2022/5/26 22:14
+     */
     @PostMapping("tokens")
     public Map<String, String> login(@RequestBody CaptchaDTO captchaDTO, HttpSession session) {
         String phone = captchaDTO.getPhone();
@@ -101,7 +99,11 @@ public class UserController {
         return map;
     }
 
-    // 注销登录
+    /**
+     * @Description: 注销登录
+     * @author: lww
+     * @date: 2022/5/26 22:16
+     */
     @DeleteMapping("tokens")
     @Token
     public void logout(HttpServletRequest request) {
@@ -110,7 +112,11 @@ public class UserController {
         log.info("注销成功");
     }
 
-    // 获取用户信息
+    /**
+     * @Description: 获取用户信息
+     * @author: lww
+     * @date: 2022/5/26 22:16
+     */
     @GetMapping("user")
     @Token
     public UserDTO userInfo(HttpServletRequest request) {
@@ -121,7 +127,11 @@ public class UserController {
         return userDTO;
     }
 
-    // 修改用户信息
+    /**
+     * @Description: 修改用户信息
+     * @author: lww
+     * @date: 2022/5/26 22:16
+     */
     @PatchMapping("user")
     @Token
     public UserDTO updateUserInfo(@RequestBody Map<String, String> map, HttpServletRequest request) {
@@ -156,7 +166,11 @@ public class UserController {
         return userDTO;
     }
 
-    // 上传视频
+    /**
+     * @Description: 上传视频
+     * @author: lww
+     * @date: 2022/5/26 22:17
+     */
     @PostMapping("user/videos")
     @Token
 //    @GlobalTransactional(name = "abc", rollbackFor = Exception.class)
@@ -205,9 +219,26 @@ public class UserController {
         return videoDTO;
     }
 
+    /**
+     * @Description: 通过id获取name
+     * @author: lww
+     * @date: 2022/5/26 22:17
+     */
     @GetMapping("getName/{id}")
     public String queryNameById(@PathVariable Integer id){
         return userService.queryNameById(id);
+    }
+
+    /**
+     * @Description: 查询用户发布的视频
+     * @author: lww
+     * @date: 2022/5/26 22:27
+     */
+    @GetMapping("/user/videos")
+    @Token
+    public List<VideoDTO> queryUserVideo(HttpServletRequest request){
+        User user = (User) request.getAttribute("user");
+        return videoService.queryVideoByUid(user.getId());
     }
 
 

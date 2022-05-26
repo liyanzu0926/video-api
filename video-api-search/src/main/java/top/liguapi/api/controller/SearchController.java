@@ -2,6 +2,7 @@ package top.liguapi.api.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,12 @@ public class SearchController {
         this.searchService = searchService;
     }
 
+    /**
+     * @Description: 视频搜索
+     * @author: lww
+     * @date: 2022/5/26 22:18
+     */
+    @GetMapping("search/videos")
     public SearchDTO searchVideo(String q, Integer page, @RequestParam("per_page") Integer size) {
         return searchService.searchVideo(q, page, size);
     }
