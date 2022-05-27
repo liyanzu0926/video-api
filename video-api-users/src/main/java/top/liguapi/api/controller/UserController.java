@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.liguapi.api.annotation.Token;
@@ -12,14 +14,12 @@ import top.liguapi.api.constant.RedisPrefix;
 import top.liguapi.api.entity.dto.CaptchaDTO;
 import top.liguapi.api.entity.dto.UserDTO;
 import top.liguapi.api.entity.dto.VideoDTO;
-import top.liguapi.api.entity.pojo.User;
-import top.liguapi.api.entity.pojo.Video;
+import top.liguapi.api.entity.pojo.*;
 import top.liguapi.api.exception.UserException;
 import top.liguapi.api.exception.UserExceptionEnum;
-import top.liguapi.api.service.CategoryService;
-import top.liguapi.api.service.UserService;
-import top.liguapi.api.service.VideoService;
+import top.liguapi.api.service.*;
 import top.liguapi.api.utils.AvatarUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -41,15 +41,21 @@ public class UserController {
     private AliyunComponent aliyunComponent;
     private VideoService videoService;
     private CategoryService categoryService;
+    private PlayedService playedService;
+    private FavoriteService favoriteService;
+    private CommentService commentService;
 
 
     @Autowired
-    public UserController(RedisTemplate redisTemplate, UserService userService, AliyunComponent aliyunComponent, VideoService videoService, CategoryService categoryService) {
+    public UserController(RedisTemplate redisTemplate, UserService userService, AliyunComponent aliyunComponent, VideoService videoService, CategoryService categoryService, PlayedService playedService, FavoriteService favoriteService, CommentService commentService) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
         this.aliyunComponent = aliyunComponent;
         this.videoService = videoService;
         this.categoryService = categoryService;
+        this.playedService = playedService;
+        this.favoriteService = favoriteService;
+        this.commentService = commentService;
     }
 
     /**
@@ -113,7 +119,7 @@ public class UserController {
     }
 
     /**
-     * @Description: 获取用户信息
+     * @Description: 获取当前用户信息
      * @author: lww
      * @date: 2022/5/26 22:16
      */
@@ -125,6 +131,16 @@ public class UserController {
         UserDTO userDTO = new UserDTO();
         BeanUtils.copyProperties(user, userDTO);
         return userDTO;
+    }
+
+    /**
+     * @Description: 通过id获取用户信息
+     * @author: lww
+     * @date: 2022/5/27 14:54
+     */
+    @GetMapping("user/{id}")
+    public User userInfo(@PathVariable Integer id) {
+        return userService.userInfo(id);
     }
 
     /**
@@ -225,7 +241,7 @@ public class UserController {
      * @date: 2022/5/26 22:17
      */
     @GetMapping("getName/{id}")
-    public String queryNameById(@PathVariable Integer id){
+    public String queryNameById(@PathVariable Integer id) {
         return userService.queryNameById(id);
     }
 
@@ -236,10 +252,223 @@ public class UserController {
      */
     @GetMapping("/user/videos")
     @Token
-    public List<VideoDTO> queryUserVideo(HttpServletRequest request){
+    public List<VideoDTO> queryUserVideo(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
         return videoService.queryVideoByUid(user.getId());
     }
 
+    /**
+     * @Description: 视频播放
+     * @author: lww
+     * @date: 2022/5/27 17:47
+     */
+    @PutMapping("/user/played/{video_id}")
+    public void playVideo(@PathVariable Integer video_id, String token) {
 
+        // 1.视频播放次数+1
+        redisTemplate.opsForHash().increment(RedisPrefix.VIDEO_PLAYS, video_id.toString(), 1);
+
+        // 2.若用户为登录状态
+        if (!StringUtils.isEmpty(token)) {
+
+            // 3.从redis获取用户对象
+            User user = (User) redisTemplate.opsForValue().get(RedisPrefix.TOKEN_KEY + token);
+
+            // 4.查询是否已有浏览记录
+            Played played = playedService.query(user.getId(), video_id);
+
+            // 5.没有记录就插入
+            if (ObjectUtils.isEmpty(played)) {
+                Played newPlayed = new Played();
+                newPlayed.setUid(user.getId());
+                newPlayed.setVideoId(video_id);
+                Date date = new Date();
+                newPlayed.setCreatedAt(date);
+                newPlayed.setUpdatedAt(date);
+                playedService.insertBrowsingHistory(newPlayed);
+            } else {
+                // 6.有记录就更新浏览时间
+                playedService.updateBrowsingTime(played.getId());
+            }
+        }
+    }
+
+    /**
+     * @Description: 点赞
+     * @author: lww
+     * @date: 2022/5/27 18:05
+     */
+    @PutMapping("user/liked/{video_id}")
+    @Token
+    public void liked(@PathVariable Integer video_id, HttpServletRequest request) {
+
+        // 1.将该视频id添加到用户点赞列表中
+        User user = (User) request.getAttribute("user");
+        Integer id = user.getId();
+        redisTemplate.opsForSet().add(RedisPrefix.USER_LIKES + id, video_id);
+
+        // 2.判断之前有没有点不喜欢，如果有，则将该视频从不喜欢列表中移除
+        if (redisTemplate.opsForSet().isMember(RedisPrefix.USER_DISLIKES + id, video_id)) {
+            redisTemplate.opsForSet().remove(RedisPrefix.USER_DISLIKES + id, video_id);
+        }
+
+        // 3.点赞次数+1
+        redisTemplate.opsForHash().increment(RedisPrefix.VIDEO_LIKES, video_id.toString(), 1);
+
+    }
+
+    /**
+     * @Description: 取消点赞
+     * @author: lww
+     * @date: 2022/5/27 18:08
+     */
+    @DeleteMapping("user/liked/{video_id}")
+    @Token
+    public void unliked(@PathVariable Integer video_id, HttpServletRequest request) {
+
+        // 1.将该视频id从用户点赞set中移除
+        User user = (User) request.getAttribute("user");
+        redisTemplate.opsForSet().remove(RedisPrefix.USER_LIKES + user.getId(), video_id);
+
+        // 2.点赞次数-1
+        redisTemplate.opsForHash().increment(RedisPrefix.VIDEO_LIKES, video_id.toString(), -1);
+
+    }
+
+    /**
+     * @Description: 不喜欢
+     * @author: lww
+     * @date: 2022/5/27 18:54
+     */
+    @PutMapping("user/disliked/{video_id}")
+    @Token
+    public void disliked(@PathVariable Integer video_id, HttpServletRequest request) {
+
+        User user = (User) request.getAttribute("user");
+        Integer id = user.getId();
+
+        // 1.将该视频id添加到用户不喜欢列表中
+        redisTemplate.opsForSet().add(RedisPrefix.USER_DISLIKES + id, video_id);
+
+        // 2.如果之前有点赞过则将此视频移除点赞列表
+        if (redisTemplate.opsForSet().isMember(RedisPrefix.USER_LIKES + id, video_id)) {
+
+            // 3.将此视频移除点赞列表
+            redisTemplate.opsForSet().remove(RedisPrefix.USER_LIKES + id, video_id);
+
+            // 4.视频点赞数-1
+            redisTemplate.opsForHash().increment(RedisPrefix.VIDEO_LIKES, video_id.toString(), -1);
+        }
+
+    }
+
+    /**
+     * @Description: 取消不喜欢
+     * @author: lww
+     * @date: 2022/5/27 20:05
+     */
+    @DeleteMapping("user/disliked/{video_id}")
+    @Token
+    public void undisliked(@PathVariable Integer video_id, HttpServletRequest request) {
+
+        // 将该视频id从不喜欢列表中移除
+        User user = (User) request.getAttribute("user");
+        redisTemplate.opsForSet().remove(RedisPrefix.USER_DISLIKES + user.getId(), video_id);
+
+    }
+
+    /**
+     * @Description: 收藏视频
+     * @author: lww
+     * @date: 2022/5/27 20:29
+     */
+    @PutMapping("user/favorites/{video_id}")
+    @Token
+    public void favorites(@PathVariable Integer video_id, HttpServletRequest request) {
+
+        User user = (User) request.getAttribute("user");
+        Integer uid = user.getId();
+
+        // 1.将视频插入数据库收藏表
+        Favorite favorite = new Favorite();
+        favorite.setUid(uid);
+        favorite.setVideoId(video_id);
+        Date date = new Date();
+        favorite.setCreatedAt(date);
+        favorite.setUpdatedAt(date);
+        favoriteService.insert(favorite);
+
+        // 2.将视频插入redis收藏列表
+        redisTemplate.opsForSet().add(RedisPrefix.USER_FAVORITE + uid, video_id);
+
+    }
+
+    /**
+     * @Description: 取消收藏
+     * @author: lww
+     * @date: 2022/5/27 20:29
+     */
+    @DeleteMapping("user/favorites/{video_id}")
+    @Token
+    public void unfavorites(@PathVariable Integer video_id, HttpServletRequest request) {
+
+        User user = (User) request.getAttribute("user");
+        Integer uid = user.getId();
+
+        // 1.将该视频从数据库收藏表中删除
+        favoriteService.delete(uid, video_id);
+
+        // 2.将该视频从redis收藏表中删除
+        redisTemplate.opsForSet().remove(RedisPrefix.USER_FAVORITE + uid, video_id);
+    }
+
+    /**
+     * @Description: 发表评论
+     * @author: lww
+     * @date: 2022/5/27 22:13
+     */
+    @PostMapping("user/comments")
+    public void comments(String token, @RequestBody Comment comment) {
+
+        // 1.判断token是否为空
+        if (StringUtils.isEmpty(token)) {
+            throw new UserException(UserExceptionEnum.TOKEN_IS_EMPTY);
+        }
+
+        // 2.判断令牌是否合法
+        User user = (User) redisTemplate.opsForValue().get(RedisPrefix.TOKEN_KEY + token);
+        if (ObjectUtils.isEmpty(user)) {
+            throw new UserException(UserExceptionEnum.TOKEN_IS_ILLEGAL);
+        }
+
+        // 3.设定评论信息
+        comment.setUid(user.getId());
+
+        // 4.插入评论
+        commentService.insert(comment);
+    }
+
+    /**
+     * @Description: 获取评论列表
+     * @author: lww
+     * @date: 2022/5/27 22:45
+     */
+    @GetMapping("user/getComments")
+    public Map<String, Object> getComments(Integer video_id, Integer page, Integer size) {
+        return commentService.getComments(video_id, page, size);
+    }
+
+    /**
+     * @Description: 获取播放历史
+     * @author: lww
+     * @date: 2022/5/27 23:22
+     */
+    @GetMapping("user/played")
+    @Token
+    public List<VideoDTO> playedLisat(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                                      @RequestParam(value = "per_page", defaultValue = "1") Integer size,
+                                      HttpServletRequest request) {
+        User user = (User) request.getAttribute("user");
+        return userService.queryPlayedList(user.getId(), page, size);
+    }
 }

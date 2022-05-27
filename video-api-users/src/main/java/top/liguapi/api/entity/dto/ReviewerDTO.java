@@ -5,16 +5,14 @@ import lombok.Data;
 /**
  * @Description
  * @Author lww
- * @Date 2022/5/26 23:25
+ * @Date 2022/5/27 21:05
  */
 @Data
-public class UploaderDTO {
+public class ReviewerDTO {
 
     private Integer id;
 
     private String name;
 
     private String avatar;
-
-    private boolean followed;
 }

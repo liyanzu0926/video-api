@@ -4,12 +4,16 @@ import com.github.pagehelper.PageHelper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import top.liguapi.api.constant.RedisPrefix;
+import top.liguapi.api.entity.dto.UploaderDTO;
 import top.liguapi.api.entity.dto.VideoDTO;
+import top.liguapi.api.entity.dto.VideoDetailsDTO;
+import top.liguapi.api.entity.pojo.User;
 import top.liguapi.api.entity.pojo.Video;
 import top.liguapi.api.entity.pojo.VideoExample;
 import top.liguapi.api.mapper.VideoMapper;
@@ -31,15 +35,15 @@ public class VideoServiceImpl implements VideoService {
     private RabbitTemplate rabbitTemplate;
     private UserService userService;
     private CategoryService categoryService;
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate redisTemplate;
 
     @Autowired
-    public VideoServiceImpl(VideoMapper videoMapper, RabbitTemplate rabbitTemplate, UserService userService, CategoryService categoryService, StringRedisTemplate stringRedisTemplate) {
+    public VideoServiceImpl(VideoMapper videoMapper, RabbitTemplate rabbitTemplate, UserService userService, CategoryService categoryService, RedisTemplate redisTemplate) {
         this.videoMapper = videoMapper;
         this.rabbitTemplate = rabbitTemplate;
         this.userService = userService;
         this.categoryService = categoryService;
-        this.stringRedisTemplate = stringRedisTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -96,6 +100,73 @@ public class VideoServiceImpl implements VideoService {
         return videoDTOS;
     }
 
+    @Override
+    public VideoDetailsDTO getVideoDetailsByid(Integer video_id, String token) {
+        // 1.获取video基本信息
+        VideoDetailsDTO videoDetailsDTO = new VideoDetailsDTO();
+        Video video = videoMapper.selectByPrimaryKey(video_id);
+        BeanUtils.copyProperties(video, videoDetailsDTO);
+
+        // 2.调用类别服务获取类别名
+        videoDetailsDTO.setCategory(categoryService.queryNameById(video.getCategoryId()));
+
+        // 3.调用user服务获取up主信息
+        User up = userService.userInfo(video.getUid());
+        UploaderDTO uploaderDTO = new UploaderDTO();
+        BeanUtils.copyProperties(up, uploaderDTO);
+
+        // 4.是否关注
+        uploaderDTO.setFollowed(false);
+
+        // 5.设置uploader信息
+        videoDetailsDTO.setUploader(uploaderDTO);
+
+        // 6.播放数
+        videoDetailsDTO.setPlays_count(0);
+        Integer plays = (Integer) redisTemplate.opsForHash().get(RedisPrefix.VIDEO_PLAYS, video.getId().toString());
+        if (plays != null) {
+            videoDetailsDTO.setPlays_count(plays);
+        }
+
+        // 7.喜欢数
+        videoDetailsDTO.setLikes_count(0);
+        Integer likes = ((Integer) redisTemplate.opsForHash().get(RedisPrefix.VIDEO_LIKES, video.getId().toString()));
+        if (likes != null) {
+            videoDetailsDTO.setLikes_count(likes);
+        }
+
+        // 8.若用户为登录状态，则查询是否点赞/收藏视频
+        if (!StringUtils.isEmpty(token)) {
+
+            // 9.获取用户信息
+            User user = (User) redisTemplate.opsForValue().get(RedisPrefix.TOKEN_KEY + token);
+            Integer id = user.getId();
+
+            // 10.是否点赞
+            if (redisTemplate.opsForSet().isMember(RedisPrefix.USER_LIKES + id, video_id)) {
+                videoDetailsDTO.setLiked(true);
+            }
+
+            // 11.是否不喜欢
+            if (redisTemplate.opsForSet().isMember(RedisPrefix.USER_DISLIKES + id, video_id)) {
+                videoDetailsDTO.setDisliked(true);
+            }
+
+            // 12.是否收藏
+            if (redisTemplate.opsForSet().isMember(RedisPrefix.USER_FAVORITE + id, video_id)) {
+                videoDetailsDTO.setFavorite(true);
+            }
+        }
+
+        return videoDetailsDTO;
+    }
+
+    @Override
+    public VideoDTO getVideoById(Integer id) {
+        Video video = videoMapper.selectByPrimaryKey(id);
+        return videoToDTO(video);
+    }
+
     /**
      * @Description: 将Video转换成VideoDTO
      * @author: lww
@@ -104,15 +175,18 @@ public class VideoServiceImpl implements VideoService {
     public VideoDTO videoToDTO(Video video) {
         VideoDTO videoDTO = new VideoDTO();
         BeanUtils.copyProperties(video, videoDTO);
-        // 调用user服务查询名字
+
+        // 1.调用user服务查询名字
         videoDTO.setUploader(userService.queryNameById(video.getUid()));
-        // 调用分类服务查询分类名称
+
+        // 2.调用分类服务查询分类名称
         videoDTO.setCategory(categoryService.queryNameById(video.getCategoryId()));
+
+        // 3.到redis中查询点赞数
         videoDTO.setLikes(0);
-        // 到redis中查询点赞数
-        String likes = stringRedisTemplate.opsForValue().get(RedisPrefix.VIDEO_LIKES + video.getId());
-        if (!StringUtils.isEmpty(likes)) {
-            videoDTO.setLikes(Integer.valueOf(likes));
+        Integer likes = (Integer) redisTemplate.opsForHash().get(RedisPrefix.VIDEO_LIKES, video.getId().toString());
+        if (likes != null) {
+            videoDTO.setLikes(likes);
         }
         return videoDTO;
     }

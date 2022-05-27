@@ -5,10 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.liguapi.api.entity.dto.VideoDTO;
 import top.liguapi.api.entity.dto.VideoDetailsDTO;
+import top.liguapi.api.entity.pojo.Comment;
 import top.liguapi.api.entity.pojo.Video;
+import top.liguapi.api.service.UserService;
 import top.liguapi.api.service.VideoService;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description
@@ -21,10 +25,12 @@ import java.util.List;
 public class VideoController {
 
     private VideoService videoService;
+    private UserService userService;
 
     @Autowired
-    public VideoController(VideoService videoService) {
+    public VideoController(VideoService videoService, UserService userService) {
         this.videoService = videoService;
+        this.userService = userService;
     }
 
     /**
@@ -70,13 +76,51 @@ public class VideoController {
     }
 
     /**
+     * @Description: 根据视频id获取视频信息
+     * @author: lww
+     * @date: 2022/5/27 23:18
+     */
+    @GetMapping("video/getVideoById/{id}")
+    public VideoDTO getVideoById(@PathVariable Integer id) {
+        return videoService.getVideoById(id);
+    }
+
+    /**
      * @Description: 获取视频的详细信息
      * @author: lww
      * @date: 2022/5/26 23:35
      */
     @GetMapping("/videos/{video_id}")
-    public VideoDetailsDTO getVideoDetailsByid(@PathVariable Integer video_id){
-        return null;
+    public VideoDetailsDTO getVideoDetailsByid(@PathVariable Integer video_id, String token) {
+        return videoService.getVideoDetailsByid(video_id, token);
+    }
+
+    /**
+     * @Description: 发表评论
+     * @author: lww
+     * @date: 2022/5/27 21:14
+     */
+    @PostMapping("/videos/{video_id}/comments")
+    public void comments(@PathVariable Integer video_id, String token, @RequestBody Comment comment) {
+        comment.setVideoId(video_id);
+        Date date = new Date();
+        comment.setCreatedAt(date);
+        comment.setUpdatedAt(date);
+
+        // 调用用户服务插入评论
+        userService.comments(token, comment);
+    }
+
+    /**
+     * @Description: 获取评论列表
+     * @author: lww
+     * @date: 2022/5/27 22:47
+     */
+    @GetMapping("/videos/{video_id}/comments")
+    public Map<String, Object> getComments(@PathVariable Integer video_id,
+                                           @RequestParam(value = "page", defaultValue = "1") Integer page,
+                                           @RequestParam(value = "per_page", defaultValue = "1") Integer size) {
+        return userService.getComments(video_id, page, size);
     }
 
 }

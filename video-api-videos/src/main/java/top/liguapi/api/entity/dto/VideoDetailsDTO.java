@@ -1,5 +1,6 @@
 package top.liguapi.api.entity.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.Date;
@@ -22,17 +23,19 @@ public class VideoDetailsDTO {
 
     private String link;
 
-    private Date created_at;
+    @JsonProperty("created_at")
+    private Date createdAt;
 
-    private Date updated_at;
+    @JsonProperty("updated_at")
+    private Date updatedAt;
 
     private Integer plays_count;
 
     private Integer likes_count;
 
-    private Boolean liked;
+    private boolean liked;
 
-    private Boolean disliked;
+    private boolean disliked;
 
-    private Boolean favorite;
+    private boolean favorite;
 }

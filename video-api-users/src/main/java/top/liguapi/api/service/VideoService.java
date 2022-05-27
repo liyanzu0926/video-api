@@ -29,4 +29,7 @@ public interface VideoService {
      */
     @GetMapping("video/query/{uid}")
     List<VideoDTO> queryVideoByUid(@PathVariable Integer uid);
+
+    @GetMapping("video/getVideoById/{id}")
+    VideoDTO getVideoById(@PathVariable Integer id);
 }

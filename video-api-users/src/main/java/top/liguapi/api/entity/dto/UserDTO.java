@@ -20,8 +20,8 @@ public class UserDTO {
     private String phone;
 
     @JsonProperty("phone_linked")
-    private Boolean phoneLinked;
+    private boolean phoneLinked;
 
     @JsonProperty("wechat_linked")
-    private Boolean wechatLinked;
+    private boolean wechatLinked;
 }

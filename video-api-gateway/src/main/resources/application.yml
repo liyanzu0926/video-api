@@ -16,7 +16,7 @@ spring:
         - id: user_router
           uri: lb://VIDEO-API-USERS
           predicates:
-            - Path=/api/tokens, /api/token, /api/user, /api/user/videos
+            - Path=/api/tokens, /api/token, /api/user, /api/user/videos, /api/user/played/**, /api/user/liked/**, /api/user/disliked/**, /api/user/favorites/**, /api/user/**, user/comments, user/getComments, /api/user/played
 
         - id: category_router
           uri: lb://VIDEO-API-CATEGORIES
@@ -26,7 +26,7 @@ spring:
         - id: videos_router
           uri: lb://VIDEO-API-VIDEOS
           predicates:
-            - Path=/api/videos/insert, /api/recommends, /api/recommends/**, /api/video/query/**, /api/videos, /api/videos/**
+            - Path=/api/videos/insert, /api/recommends, /api/recommends/**, /api/video/query/**, /api/videos, /api/videos/**, /api/videos/**/comments, /api/video/getVideoById/**
 
         - id: search_router
           uri: lb://VIDEO-API-SEARCH

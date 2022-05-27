@@ -52,4 +52,10 @@ public class ESTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void test2(){
+        Integer a = 1;
+        System.out.println(a.toString());
+    }
 }

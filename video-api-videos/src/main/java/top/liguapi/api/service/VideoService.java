@@ -1,6 +1,7 @@
 package top.liguapi.api.service;
 
 import top.liguapi.api.entity.dto.VideoDTO;
+import top.liguapi.api.entity.dto.VideoDetailsDTO;
 import top.liguapi.api.entity.pojo.Video;
 
 import java.util.List;
@@ -18,4 +19,8 @@ public interface VideoService {
     List<VideoDTO> queryVideoByUid(Integer uid);
 
     List<VideoDTO> getVideoListByCategoryId(Integer page, Integer size, Integer categoryId);
+
+    VideoDetailsDTO getVideoDetailsByid(Integer video_id, String token);
+
+    VideoDTO getVideoById(Integer id);
 }

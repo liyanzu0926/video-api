@@ -1,6 +1,9 @@
 package top.liguapi.api.service;
 
+import top.liguapi.api.entity.dto.VideoDTO;
 import top.liguapi.api.entity.pojo.User;
+
+import java.util.List;
 
 /**
  * @Description
@@ -15,4 +18,8 @@ public interface UserService {
     void updateUserInfo(User user);
 
     String queryNameById(Integer id);
+
+    User userInfo(Integer id);
+
+    List<VideoDTO> queryPlayedList(Integer id, Integer page, Integer size);
 }
